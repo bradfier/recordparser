@@ -6,3 +6,4 @@ authors = ["Richard Bradfield <bradfier@fstab.me>"]
 [dependencies]
 structopt = "^0.2"
 xml-rs = "^0.7"
+chrono = "^0.4"
