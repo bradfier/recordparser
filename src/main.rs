@@ -1,17 +1,25 @@
 extern crate chrono;
 #[macro_use]
 extern crate structopt;
+
+#[macro_use]
+extern crate serde_derive;
+
+extern crate csv;
 extern crate xml;
 
 use std::fs::File;
 use std::io::{BufReader, Read};
 use std::path::PathBuf;
+use std::error::Error;
 
 use structopt::StructOpt;
 use chrono::prelude::*;
 
 use xml::reader::{EventReader, XmlEvent};
 use xml::ParserConfig;
+
+use csv::Writer;
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "Basic")]
@@ -25,7 +33,7 @@ struct Opt {
     input: PathBuf,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 struct Record {
     class: String,
     comment: String,
@@ -94,8 +102,8 @@ fn parse_records<R: Read>(r: R) -> Vec<Record> {
                                     .clone()
                                     .value,
                                 date: NaiveDateTime::from_timestamp(
-                                    unix_time[0..10].parse::<i64>().unwrap(),
-                                    unix_time[11..].parse::<u32>().unwrap(),
+                                    (unix_time.parse::<i64>().unwrap()) / 1_000_000,
+                                    0,
                                 ),
                             };
                             records.push(record);
@@ -114,6 +122,14 @@ fn parse_records<R: Read>(r: R) -> Vec<Record> {
     records
 }
 
+fn write_output(records: Vec<Record>, path: PathBuf) -> Result<(), Box<Error>> {
+    let mut writer = Writer::from_path(path).expect("Couldn't open file for writing.");
+    for r in records {
+        writer.serialize(r)?;
+    }
+    Ok(())
+}
+
 fn main() {
     let opt = Opt::from_args();
 
@@ -121,6 +137,5 @@ fn main() {
     let file = BufReader::new(file);
 
     let records = parse_records(file);
-
-    println!("{:?}", records);
+    write_output(records, opt.output).expect("Failure writing out CSV.");
 }

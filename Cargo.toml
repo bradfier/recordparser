@@ -6,4 +6,7 @@ authors = ["Richard Bradfield <bradfier@fstab.me>"]
 [dependencies]
 structopt = "^0.2"
 xml-rs = "^0.7"
-chrono = "^0.4"
+chrono = { version = "^0.4", features = ["serde"]}
+csv = "1.0.0-beta.5"
+serde = "^1.0"
+serde_derive = "^1.0"
